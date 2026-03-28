@@ -1,2 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
+
+@theme inline {
+	/* --- Fonts --- */
+	--font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+	/* --- Base Brand Colors (from Screenshot) --- */
+	--color-primary: #7AA2F7;
+	--color-secondary: #F7768E;
+	--color-tertiary: #BB9AF7;
+
+	/* --- Surface Architecture (from Document & Screenshot) --- */
+	--color-surface: #12131D;
+	--color-surface-container-low: #1A1B26;
+	/* Matches Neutral */
+	--color-surface-container-high: #282935;
+	--color-surface-container-highest: #333440;
+	--color-surface-variant: #333440;
+	--color-surface-bright: #383844;
+
+	/* --- Accents & Text (from Document) --- */
+	--color-on-surface: #E2E1F1;
+	--color-on-surface-variant: #C3C6D3;
+	--color-outline-variant: #434751;
+	--color-on-primary: #002E6B;
+
+	/* --- Typography Scale (Editorial Precision) --- */
+	--text-display-lg: 3.5rem;
+	--text-display-lg--font-weight: 700;
+	--text-display-lg--letter-spacing: -0.04em;
+
+	--text-headline-sm: 1.5rem;
+	--text-headline-sm--font-weight: 500;
+
+	--text-label-md: 0.75rem;
+	--text-label-md--letter-spacing: 0.1em;
+
+	--text-body-md: 0.875rem;
+
+	/* --- Custom Transitions --- */
+	--ease-neon: cubic-bezier(0.4, 0, 0.2, 1);
+
+	/* --- Component Specifics (The "Glass & Tone" Rule) --- */
+	--blur-glass: 12px;
+}
+
+/* Utility overrides to enforce the "No-Line" rule. 
+  Instead of applying borders, we apply specific surface shifts.
+*/
+@layer utilities {
+	.glass-panel {
+		background-color: color-mix(in srgb, var(--color-surface-variant) 80%, transparent);
+		backdrop-filter: blur(var(--blur-glass));
+	}
+
+	.ghost-border {
+		border: 1px solid color-mix(in srgb, var(--color-outline-variant) 15%, transparent);
+	}
+}
