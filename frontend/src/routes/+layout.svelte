@@ -2,8 +2,24 @@
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import Header from '$lib/components/Header.svelte';
+	import { onMount } from 'svelte';
+	import { authenticate, client } from '$lib/services/nakama';
+	import { sessionStore } from '$lib/stores/session.svelte';
 
 	let { children } = $props();
+
+	onMount(async () => {
+		try {
+			const session = await authenticate();
+			sessionStore.session = session;
+
+			// Fetch the user's own account to get their username
+			const account = await client.getAccount(session);
+			sessionStore.username = account.user?.username ?? 'Player';
+		} catch (err) {
+			console.error('Nakama authentication failed:', err);
+		}
+	});
 </script>
 
 <svelte:head>
