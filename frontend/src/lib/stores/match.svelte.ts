@@ -72,4 +72,17 @@ export class MatchStore {
 	setOpponentDisconnected(v: boolean) {
 		this.opponentDisconnected = v;
 	}
+
+	reset() {
+		this.board = Array(9).fill('');
+		this.turn = 'X';
+		this.deadline = 0;
+		this.playerX = null;
+		this.playerO = null;
+		this.gamePhase = 'waiting';
+		this.result = { winner: null, reason: '' };
+		this.opponentDisconnected = false;
+	}
 }
+
+export const matchStore = new MatchStore();
