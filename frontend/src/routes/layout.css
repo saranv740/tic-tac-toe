@@ -6,12 +6,12 @@
 	/* --- Fonts --- */
 	--font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 
-	/* --- Base Brand Colors (from Screenshot) --- */
+	/* --- Base Brand Colors --- */
 	--color-primary: #7AA2F7;
 	--color-secondary: #F7768E;
 	--color-tertiary: #BB9AF7;
 
-	/* --- Surface Architecture (from Document & Screenshot) --- */
+	/* --- Surface Architecture --- */
 	--color-surface: #12131D;
 	--color-surface-container-low: #1A1B26;
 	/* Matches Neutral */
@@ -19,14 +19,16 @@
 	--color-surface-container-highest: #333440;
 	--color-surface-variant: #333440;
 	--color-surface-bright: #383844;
+	--color-surface-container-lowest: #0C0D18;
 
-	/* --- Accents & Text (from Document) --- */
+	/* --- Accents & Text --- */
 	--color-on-surface: #E2E1F1;
 	--color-on-surface-variant: #C3C6D3;
 	--color-outline-variant: #434751;
 	--color-on-primary: #002E6B;
+	--color-on-secondary-container: #FF97A7;
 
-	/* --- Typography Scale (Editorial Precision) --- */
+	/* --- Typography Scale --- */
 	--text-display-lg: 3.5rem;
 	--text-display-lg--font-weight: 700;
 	--text-display-lg--letter-spacing: -0.04em;

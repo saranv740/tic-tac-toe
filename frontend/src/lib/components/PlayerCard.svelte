@@ -17,7 +17,7 @@
 		'w-full max-w-100 rounded-lg border-l-4 border-solid bg-surface-container-high p-6 text-on-surface opacity-50',
 		{
 			'border-primary': isActive && role === 'X',
-			'border-[#ff97a7]': isActive && role === 'O',
+			'border-on-secondary-container': isActive && role === 'O',
 			'opacity-100': isActive
 		},
 		props.class
@@ -26,7 +26,7 @@
 	<p
 		class={cn('mb-2 text-[10px] font-medium tracking-[1px] uppercase', {
 			'text-primary': isActive && role === 'X',
-			'text-[#ff97a7]': isActive && role === 'O'
+			'text-on-secondary-container': isActive && role === 'O'
 		})}
 	>
 		current turn
