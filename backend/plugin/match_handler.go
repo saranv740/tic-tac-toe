@@ -69,8 +69,15 @@ type EndMessage struct {
 // Invoked when a match is created as a result of the match create function and sets up the initial state of a match
 func (m *MatchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, params map[string]any) (any, int, string) {
 	isTimedMode := false
-	if mode, ok := params["mode"].(string); ok && mode == "timed" {
+	mode := "classic"
+	if m, ok := params["mode"].(string); ok && m == "timed" {
 		isTimedMode = true
+		mode = m
+	}
+
+	roomName := "Public Room"
+	if name, ok := params["name"].(string); ok && name != "" {
+		roomName = name
 	}
 
 	state := &MatchState{
@@ -81,7 +88,15 @@ func (m *MatchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db 
 		IsTimedMode: isTimedMode,
 	}
 	tickRate := 5
-	label := "tic-tac-toe"
+
+	// Create JSON label
+	labelObj := map[string]any{
+		"open": 1,
+		"mode": mode,
+		"name": roomName,
+	}
+	labelBytes, _ := json.Marshal(labelObj)
+	label := string(labelBytes)
 
 	return state, tickRate, label
 }
@@ -90,14 +105,21 @@ func (m *MatchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db 
 func (m *MatchHandler) MatchJoinAttempt(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, dispatcher runtime.MatchDispatcher, tick int64, state any, presence runtime.Presence, metadata map[string]string) (any, bool, string) {
 	s := state.(*MatchState)
 
-	// Only allow 2 players
-	if len(s.Presences) >= 2 {
-		return s, false, "match full"
-	}
-
 	// Prevent the same player joining twice from different sessions simultaneously
 	if _, ok := s.Presences[presence.GetUserId()]; ok {
 		return s, false, "already joined"
+	}
+
+	// Strict reconnection check
+	if s.State != StateWaiting && s.PlayerX != "" && s.PlayerO != "" {
+		if presence.GetUserId() != s.PlayerX && presence.GetUserId() != s.PlayerO {
+			return s, false, "match already in progress and you are not a participant"
+		}
+	} else {
+		// Only allow 2 players to join originally
+		if len(s.Presences) >= 2 {
+			return s, false, "match full"
+		}
 	}
 
 	return s, true, ""
@@ -139,6 +161,13 @@ func (m *MatchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db 
 			s.Deadline = time.Now().Add(TurnTimeLimitSec * time.Second).Unix()
 		}
 
+		// Update label to hide match
+		labelObj := map[string]any{
+			"open": 0,
+		}
+		labelBytes, _ := json.Marshal(labelObj)
+		dispatcher.MatchLabelUpdate(string(labelBytes))
+
 		// Broadcast game start
 		s.broadcastState(dispatcher, OpCodeGameStart)
 	}
@@ -168,6 +197,21 @@ func (m *MatchHandler) MatchLeave(ctx context.Context, logger runtime.Logger, db
 		return nil
 	}
 
+	// Re-open if State is still waiting
+	if s.State == StateWaiting && len(s.Presences) < 2 {
+		mode := "classic"
+		if s.IsTimedMode {
+			mode = "timed"
+		}
+		labelObj := map[string]any{
+			"open": 1,
+			"mode": mode,
+			"name": "Public Room", // Reset name optionally
+		}
+		labelBytes, _ := json.Marshal(labelObj)
+		dispatcher.MatchLabelUpdate(string(labelBytes))
+	}
+
 	return s
 }
 
@@ -188,11 +232,13 @@ func (m *MatchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db 
 			if userID == s.PlayerX {
 				s.Winner = PlayerO
 				s.broadcastGameEnded(dispatcher, PlayerO, "Player X disconnected")
+
 				updatePlayerStats(ctx, logger, nk, s.PlayerO, "win")
 				updatePlayerStats(ctx, logger, nk, s.PlayerX, "loss")
 			} else {
 				s.Winner = PlayerX
 				s.broadcastGameEnded(dispatcher, PlayerX, "Player O disconnected")
+
 				updatePlayerStats(ctx, logger, nk, s.PlayerX, "win")
 				updatePlayerStats(ctx, logger, nk, s.PlayerO, "loss")
 			}
@@ -231,17 +277,20 @@ func (m *MatchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db 
 			isPlayerO := msg.GetUserId() == s.PlayerO
 
 			if (s.Turn == PlayerX && !isPlayerX) || (s.Turn == PlayerO && !isPlayerO) {
+				logger.Warn("User %s attempted a move when it wasn't their turn", msg.GetUserId())
 				continue // Not their turn
 			}
 
 			var moveData MoveMessage
 			if err := json.Unmarshal(msg.GetData(), &moveData); err != nil {
+				logger.Warn("Invalid move data format from user %s: %v", msg.GetUserId(), err)
 				continue // Invalid format
 			}
 
 			// Validate move (0-8) and check if cell is empty
 			pos := moveData.Position
 			if pos < 0 || pos > 8 || s.Board[pos] != 0 {
+				logger.Warn("Invalid move position %d from user %s", pos, msg.GetUserId())
 				continue // Invalid move
 			}
 

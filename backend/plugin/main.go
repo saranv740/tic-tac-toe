@@ -3,10 +3,56 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/heroiclabs/nakama-common/runtime"
 )
+
+func rpcCreateMatch(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, payload string) (string, error) {
+	userID, ok := ctx.Value(runtime.RUNTIME_CTX_USER_ID).(string)
+	if !ok || userID == "" {
+		return "", runtime.NewError("must be authenticated", 16) // Unauthenticated
+	}
+
+	// Parse payload safely
+	var request map[string]any
+	if payload != "" {
+		if err := json.Unmarshal([]byte(payload), &request); err != nil {
+			return "", runtime.NewError("invalid payload format", 3) // Invalid Argument
+		}
+	}
+
+	mode := "classic"
+	if m, ok := request["mode"].(string); ok && m == "timed" {
+		mode = m
+	}
+
+	// Get username to name the room appropriately
+	account, err := nk.AccountGetId(ctx, userID)
+	if err != nil {
+		logger.Error("Failed to get account: %v", err)
+		return "", runtime.NewError("failed to get user account", 13) // Internal
+	}
+
+	roomName := account.User.Username + "'s room"
+
+	matchID, err := nk.MatchCreate(ctx, "tic-tac-toe", map[string]any{
+		"mode": mode,
+		"name": roomName,
+	})
+
+	if err != nil {
+		logger.Error("Failed to create match: %v", err)
+		return "", runtime.NewError("failed to create match", 13) // Internal
+	}
+
+	response, _ := json.Marshal(map[string]string{
+		"match_id": matchID,
+	})
+
+	return string(response), nil
+}
 
 func InitModule(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, initializer runtime.Initializer) error {
 	initStart := time.Now()
@@ -16,6 +62,12 @@ func InitModule(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runti
 		return &MatchHandler{}, nil
 	}); err != nil {
 		logger.Error("Failed to register match: %v", err)
+		return err
+	}
+
+	// 1.5 Register the Match Creation RPC
+	if err := initializer.RegisterRpc("create_match", rpcCreateMatch); err != nil {
+		logger.Error("Failed to register rpc create_match: %v", err)
 		return err
 	}
 
