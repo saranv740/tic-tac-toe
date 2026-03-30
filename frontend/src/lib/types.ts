@@ -8,6 +8,7 @@ export interface UserStats {
 	wins: number;
 	losses: number;
 	draws: number;
+	current_streak: number;
 }
 
 export type MatchType = 'classic' | 'timed';

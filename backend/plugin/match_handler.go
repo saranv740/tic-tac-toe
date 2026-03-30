@@ -56,9 +56,10 @@ type MoveMessage struct {
 }
 
 type UserStats struct {
-	Wins   int `json:"wins"`
-	Losses int `json:"losses"`
-	Draws  int `json:"draws"`
+	Wins          int `json:"wins"`
+	Losses        int `json:"losses"`
+	Draws         int `json:"draws"`
+	CurrentStreak int `json:"current_streak"`
 }
 
 type EndMessage struct {
@@ -436,14 +437,17 @@ func updatePlayerStats(ctx context.Context, logger runtime.Logger, nk runtime.Na
 		}
 	}
 
-	// 2. Increment stats
+	// 2. Increment stats and update streaks
 	switch result {
 	case "win":
 		stats.Wins++
+		stats.CurrentStreak++
 	case "loss":
 		stats.Losses++
+		stats.CurrentStreak = 0
 	case "draw":
 		stats.Draws++
+		stats.CurrentStreak = 0
 	}
 
 	// 3. Save directly to Storage

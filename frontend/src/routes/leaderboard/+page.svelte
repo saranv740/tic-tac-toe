@@ -11,6 +11,7 @@
 		losses: number;
 		draws: number;
 		points: number; // = wins (the leaderboard score)
+		currentStreak: number;
 	}
 
 	let rows = $state<LeaderboardRow[]>([]);
@@ -55,14 +56,20 @@
 
 			// 3. Merge leaderboard rows with W/L/D stats
 			rows = records.map((r) => {
-				const stats = statsMap.get(r.owner_id!) ?? { wins: 0, losses: 0, draws: 0 };
+				const stats = statsMap.get(r.owner_id!) ?? {
+					wins: 0,
+					losses: 0,
+					draws: 0,
+					current_streak: 0
+				};
 				return {
 					rank: r.rank || 0,
 					username: r.username ?? 'Unknown',
 					wins: stats.wins,
 					losses: stats.losses,
 					draws: stats.draws,
-					points: r.score || 0 // score = total wins
+					points: r.score || 0, // score = total wins
+					currentStreak: stats.current_streak ?? 0
 				};
 			});
 		} catch (err) {
@@ -95,6 +102,7 @@
 					<th scope="col" class="p-6">Rank</th>
 					<th scope="col" class="p-6">Player name</th>
 					<th scope="col" class="p-6">W / L / D</th>
+					<th scope="col" class="p-6">🔥 Streak</th>
 					<th scope="col" class="p-6">Points</th>
 				</tr>
 			</thead>
@@ -104,6 +112,13 @@
 						<td class="p-6">{row.rank}</td>
 						<td class="p-6">{row.username}</td>
 						<td class="p-6">{row.wins} / {row.losses} / {row.draws}</td>
+						<td class="p-6">
+							{#if row.currentStreak > 0}
+								<span title="Current win streak">🔥 {row.currentStreak}</span>
+							{:else}
+								<span class="text-on-surface-variant">—</span>
+							{/if}
+						</td>
 						<td class="p-6">{row.points}</td>
 					</tr>
 				{/each}
@@ -142,12 +157,12 @@
 	}
 
 	tr :nth-child(1) {
-		width: 15%;
+		width: 10%;
 		text-align: right;
 	}
 
 	tr :nth-child(2) {
-		width: 35%;
+		width: 30%;
 		text-align: center;
 	}
 
@@ -161,7 +176,12 @@
 	}
 
 	tr :nth-child(4) {
-		width: 25%;
+		width: 15%;
+		text-align: center;
+	}
+
+	tr :nth-child(5) {
+		width: 20%;
 		text-align: right;
 	}
 </style>
