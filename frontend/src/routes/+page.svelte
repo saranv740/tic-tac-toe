@@ -6,11 +6,13 @@
 	import { client, getSocket } from '$lib/services/nakama';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import type { MatchLabel, MatchType } from '$lib/types';
+	import { cn } from '$lib';
 
 	let joinRoomDialog: HTMLDialogElement | undefined;
 	let isSearching = $state(false);
 	let isCreating = $state(false);
 	let searchError = $state('');
+	let matchType = $state<MatchType>('classic');
 
 	/** Navigate to /match after storing the match ID in the session store. */
 	function enterMatch(matchId: string) {
@@ -37,7 +39,7 @@
 			};
 
 			// query '*' = any opponent, min/max = 2 players
-			await socket.addMatchmaker('*', 2, 2, { mode: 'classic' });
+			await socket.addMatchmaker('*', 2, 2, { mode: matchType });
 		} catch (err) {
 			console.error('Matchmaking error:', err);
 			searchError = 'Failed to start matchmaking. Is the server running?';
@@ -52,7 +54,7 @@
 
 		try {
 			// Call our backend RPC — client.rpc already parses the JSON payload
-			const response = await client.rpc(sessionStore.session, 'create_match', { mode: 'classic' });
+			const response = await client.rpc(sessionStore.session, 'create_match', { mode: matchType });
 			const data: Record<string, string> = (response.payload as Record<string, string>) || {};
 			if (!data.match_id) {
 				throw new Error('No match_id in RPC response');
@@ -109,8 +111,36 @@
 	}
 </script>
 
+{#snippet optionButton(text: MatchType, isActive: boolean, onClick: () => void)}
+	<button
+		type="button"
+		onclick={onClick}
+		class={cn([
+			'basis-1/2 cursor-pointer rounded-sm p-2 text-on-surface-variant uppercase',
+			{
+				'bg-[#aec6ff] text-on-primary': isActive
+			}
+		])}
+	>
+		{text}
+	</button>
+{/snippet}
+
 <h1 class="text-center text-6xl font-bold text-on-surface uppercase">Game Time?</h1>
 <div class="mt-20 flex w-full max-w-md flex-col gap-4">
+	<!-- Mode selection -->
+	<div
+		class="flex items-center rounded-lg bg-surface-container-lowest p-1 text-xs font-bold tracking-[1.2px]"
+	>
+		{@render optionButton('classic', matchType === 'classic', () => {
+			matchType = 'classic';
+		})}
+
+		{@render optionButton('timed', matchType === 'timed', () => {
+			matchType = 'timed';
+		})}
+	</div>
+
 	<!-- Quick match -->
 	<Button
 		type="button"
