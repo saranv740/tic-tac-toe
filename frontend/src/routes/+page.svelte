@@ -20,7 +20,6 @@
 
 	async function handleQuickMatch() {
 		if (!sessionStore.session) return;
-
 		isSearching = true;
 		searchError = '';
 
@@ -29,18 +28,15 @@
 
 			// Register the one-time handler BEFORE adding to matchmaker
 			socket.onmatchmakermatched = (matched) => {
-				// matched.match_id is set when the server automatically creates the match
+				// match_id is set for server-authoritative matches; token for relayed
 				const matchId = matched.match_id ?? matched.token;
 				if (matchId) {
-					// Join the matched authoritative match
-					socket.joinMatch(matchId).then(() => {
-						enterMatch(matchId);
-					});
+					// Store match ID and navigate — the match page joins after registering handlers
+					enterMatch(matchId);
 				}
 			};
 
 			// query '*' = any opponent, min/max = 2 players
-			// Pass the mode as a string property so the MatchmakerMatched hook on the server gets it
 			await socket.addMatchmaker('*', 2, 2, { mode: 'classic' });
 		} catch (err) {
 			console.error('Matchmaking error:', err);
@@ -51,23 +47,19 @@
 
 	async function handleCreateRoom() {
 		if (!sessionStore.session) return;
-
 		isCreating = true;
 		searchError = '';
 
 		try {
-			const socket = await getSocket();
-
 			// Call our backend RPC — client.rpc already parses the JSON payload
 			const response = await client.rpc(sessionStore.session, 'create_match', { mode: 'classic' });
-
 			if (!response.payload || !(response.payload as Record<string, string>).match_id) {
 				throw new Error('No match_id in RPC response');
 			}
 
 			const matchId: string = (response.payload as Record<string, string>).match_id;
-			// Immediately join the room as the creator and wait for player 2
-			await socket.joinMatch(matchId);
+
+			// Navigate — match page will join the socket after registering handlers
 			enterMatch(matchId);
 		} catch (err) {
 			console.error('Create room error:', err);
@@ -81,7 +73,6 @@
 		if (!sessionStore.session) return [];
 
 		// Query server for authoritative matches where label.open == 1
-		// Nakama label query syntax: "+label.open:1"
 		const result = await client.listMatches(
 			sessionStore.session,
 			20, // limit
@@ -112,13 +103,8 @@
 
 	async function handleJoin(matchId: string) {
 		if (!matchId) return;
-		try {
-			const socket = await getSocket();
-			await socket.joinMatch(matchId);
-			enterMatch(matchId);
-		} catch (err) {
-			console.error('Join error:', err);
-		}
+		// Navigate — match page will join after registering handlers
+		enterMatch(matchId);
 	}
 </script>
 
