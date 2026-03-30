@@ -53,11 +53,12 @@
 		try {
 			// Call our backend RPC — client.rpc already parses the JSON payload
 			const response = await client.rpc(sessionStore.session, 'create_match', { mode: 'classic' });
-			if (!response.payload || !(response.payload as Record<string, string>).match_id) {
+			const data: Record<string, string> = (response.payload as Record<string, string>) || {};
+			if (!data.match_id) {
 				throw new Error('No match_id in RPC response');
 			}
 
-			const matchId: string = (response.payload as Record<string, string>).match_id;
+			const matchId: string = data.match_id;
 
 			// Navigate — match page will join the socket after registering handlers
 			enterMatch(matchId);
