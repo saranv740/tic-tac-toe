@@ -3,6 +3,7 @@
 	import { cn } from '$lib';
 	import OIcon from '$lib/assets/OIcon.svelte';
 	import XIcon from '$lib/assets/XIcon.svelte';
+	import { matchStore } from '$lib/stores/match.svelte';
 	import type { Turn, UserStats } from '$lib/types';
 	import Button from './Button.svelte';
 
@@ -69,6 +70,7 @@
 <Button
 	onclick={() => {
 		goto('/');
+		matchStore.reset();
 	}}
 	type="button"
 	variant="primary"

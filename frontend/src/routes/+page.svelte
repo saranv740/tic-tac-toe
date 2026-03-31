@@ -9,6 +9,7 @@
 	import { cn } from '$lib';
 
 	let joinRoomDialog: HTMLDialogElement | undefined;
+	let isJoinOpen = $state(false);
 	let isSearching = $state(false);
 	let isCreating = $state(false);
 	let searchError = $state('');
@@ -156,7 +157,10 @@
 		type="button"
 		variant="secondary"
 		disabled={isSearching || isCreating}
-		onclick={() => joinRoomDialog?.showModal()}
+		onclick={() => {
+			isJoinOpen = true;
+			joinRoomDialog?.showModal();
+		}}
 	>
 		Join room
 	</Button>
@@ -191,7 +195,16 @@
 />
 
 <dialog bind:this={joinRoomDialog}>
-	<JoinRoom handleClose={() => joinRoomDialog?.close()} {handleJoin} {fetchOpenRooms} />
+	{#if isJoinOpen}
+		<JoinRoom
+			handleClose={() => {
+				joinRoomDialog?.close();
+				isJoinOpen = false;
+			}}
+			{handleJoin}
+			{fetchOpenRooms}
+		/>
+	{/if}
 </dialog>
 
 <style>

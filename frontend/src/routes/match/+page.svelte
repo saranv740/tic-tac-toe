@@ -43,7 +43,7 @@
 
 	async function handleMove(pos: number) {
 		const matchId = sessionStore.matchId;
-		if (!matchId || matchStore.gamePhase !== 'playing') return;
+		if (!matchId || matchStore.gamePhase !== 'playing' || matchStore.opponentDisconnected) return;
 		// Only allow moves on my turn
 		if (matchStore.turn !== sessionStore.role) return;
 
@@ -64,11 +64,12 @@
 			}
 		} else {
 			console.error('No matchId found');
-			sessionStore.clearMatch();
-			matchStore.reset();
-			stopTimer();
-			goto('/');
 		}
+
+		sessionStore.clearMatch();
+		matchStore.reset();
+		stopTimer();
+		goto('/');
 	}
 
 	// register socket handlers first, THEN join
@@ -232,7 +233,13 @@
 		<Timer {remainingSeconds} class="mb-8" />
 	{/if}
 
-	<Board onMove={handleMove} currentTurn={matchStore.turn} inputs={matchStore.board} class="mb-8" />
+	<Board
+		onMove={handleMove}
+		currentTurn={matchStore.turn}
+		inputs={matchStore.board}
+		class="mb-8"
+		isDisabled={matchStore.opponentDisconnected}
+	/>
 
 	<Button variant="outline" class="mb-8" onclick={handleQuit}>Quit Match</Button>
 {/if}

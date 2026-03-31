@@ -9,9 +9,10 @@
 		onMove: (row: number) => void;
 		currentTurn: Turn;
 		class?: string;
+		isDisabled?: boolean;
 	}
 
-	const { rows = 3, cols = 3, onMove, currentTurn, inputs, ...props }: Props = $props();
+	const { rows = 3, cols = 3, onMove, currentTurn, inputs, isDisabled, ...props }: Props = $props();
 </script>
 
 <div class={cn('board-container p-6 sm:p-12', props.class)}>
@@ -19,6 +20,7 @@
 	<div class="board" style:--row-count={rows} style:--col-count={cols}>
 		{#each inputs as input, pos}
 			<button
+				disabled={isDisabled}
 				type="button"
 				aria-label={`Board position ${pos + 1}. ${input === '' ? 'Not filled' : `Filled by ${input}`}`}
 				class={cn(
@@ -26,7 +28,8 @@
 					{
 						'text-primary': input === 'X',
 						'text-on-secondary-container': input === 'O',
-						'cursor-pointer hover:bg-surface-bright': input === ''
+						'cursor-pointer hover:bg-surface-bright': input === '',
+						'pointer-events-none': isDisabled
 					}
 				)}
 				onclick={() => {
