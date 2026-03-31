@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { cn } from '$lib';
+	import { sessionStore } from '$lib/stores/session.svelte';
 	import type { Turn } from '$lib/types';
 
 	interface Props {
@@ -29,7 +30,7 @@
 			'text-on-secondary-container': isActive && role === 'O'
 		})}
 	>
-		current turn
+		current turn {sessionStore.role === role ? '(you)' : ''}
 	</p>
 	<p class="mb-1 text-base font-bold text-on-surface">{name} ({role})</p>
 	<p class="tracking-wide text-on-surface-variant">POINTS: {points}</p>

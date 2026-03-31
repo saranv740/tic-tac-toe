@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { client } from '$lib/services/nakama';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import type { UserStats } from '$lib/types';
 
 	interface LeaderboardRow {
+		id: string;
 		rank: number;
 		username: string;
 		wins: number;
@@ -18,7 +18,7 @@
 	let isLoading = $state(true);
 	let error = $state('');
 
-	onMount(async () => {
+	const fetchLeaderBoard = async () => {
 		if (!sessionStore.session) return;
 
 		try {
@@ -63,6 +63,7 @@
 					current_streak: 0
 				};
 				return {
+					id: r.owner_id || '',
 					rank: r.rank || 0,
 					username: r.username ?? 'Unknown',
 					wins: stats.wins,
@@ -78,6 +79,10 @@
 		} finally {
 			isLoading = false;
 		}
+	};
+
+	$effect(() => {
+		fetchLeaderBoard();
 	});
 </script>
 
@@ -107,7 +112,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each rows as row (row.username)}
+				{#each rows as row (row.id)}
 					<tr class="text-on-surface">
 						<td class="p-6">{row.rank}</td>
 						<td class="p-6">{row.username}</td>
@@ -140,8 +145,12 @@
 
 	table {
 		table-layout: fixed;
-		width: 100%;
+		width: 150%;
 		border-collapse: collapse;
+
+		@media screen and (width > 40rem) {
+			width: 100%;
+		}
 	}
 
 	th {
@@ -157,7 +166,7 @@
 	}
 
 	tr :nth-child(1) {
-		width: 10%;
+		width: 20%;
 		text-align: right;
 	}
 
@@ -176,7 +185,7 @@
 	}
 
 	tr :nth-child(4) {
-		width: 15%;
+		width: 25%;
 		text-align: center;
 	}
 
