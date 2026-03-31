@@ -2,12 +2,13 @@
  * The Client instance is created ONCE at module load time.
  */
 
+import { PUBLIC_NAKAMA_HOST, PUBLIC_NAKAMA_PORT, PUBLIC_NAKAMA_SERVER_KEY, PUBLIC_NAKAMA_USE_SSL } from '$env/static/public';
 import { Client, type Session, type Socket } from '@heroiclabs/nakama-js';
 
-const HOST = import.meta.env.VITE_NAKAMA_HOST ?? 'localhost';
-const PORT = import.meta.env.VITE_NAKAMA_PORT ?? '7350';
-const USE_SSL = import.meta.env.VITE_NAKAMA_USE_SSL === 'true';
-const SERVER_KEY = import.meta.env.VITE_NAKAMA_SERVER_KEY ?? 'defaultkey';
+const HOST = PUBLIC_NAKAMA_HOST ?? 'localhost';
+const PORT = PUBLIC_NAKAMA_PORT ?? '7350';
+const USE_SSL = PUBLIC_NAKAMA_USE_SSL === 'true';
+const SERVER_KEY = PUBLIC_NAKAMA_SERVER_KEY ?? 'defaultkey';
 const DEVICE_ID_KEY = 'ttt_device_id';
 
 const client = new Client(SERVER_KEY, HOST, PORT, USE_SSL);

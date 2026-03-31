@@ -7,9 +7,6 @@ services:
       - POSTGRES_PASSWORD=localdb
     volumes:
       - data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-      - "8080:8080"
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres", "-d", "nakama"]
       interval: 3s
@@ -22,10 +19,8 @@ services:
       - "-ecx"
       - >
         /nakama/nakama migrate up --database.address postgres:localdb@postgres:5432/nakama &&
-        exec /nakama/nakama --name nakama1 --database.address postgres:localdb@postgres:5432/nakama --session.token_expiry_sec 7200        
+        exec /nakama/nakama --name nakama1 --database.address postgres:localdb@postgres:5432/nakama --session.token_expiry_sec 7200 --socket.server_key ttt_saran_ws
     restart: always
-    links:
-      - "postgres:db"
     depends_on:
       postgres:
         condition: service_healthy
