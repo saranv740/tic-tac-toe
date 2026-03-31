@@ -3,7 +3,7 @@
 A production-ready, multiplayer Tic-Tac-Toe game with a server-authoritative architecture built using Nakama.
 
 ## Links:
-- Frontend: [Vercel](https://ttt.codebysaran.in)
+- Frontend: [Vercel](https://tic-tac-toe-one-ebon.vercel.app)
 - Backend: [Digital Ocean](https://be.codebysaran.in)
 
 ## Setup and Installation
