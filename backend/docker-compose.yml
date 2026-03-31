@@ -24,14 +24,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    expose:
-      - "7349"
-      - "7350"
-      - "7351"
     ports:
-      - "7349:7349"
-      - "7350:7350"
-      - "7351:7351"
+      - "127.0.0.1:7350:7350"
     healthcheck:
       test: ["CMD", "/nakama/nakama", "healthcheck"]
       interval: 10s

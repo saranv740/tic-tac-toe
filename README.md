@@ -2,6 +2,10 @@
 
 A production-ready, multiplayer Tic-Tac-Toe game with a server-authoritative architecture built using Nakama.
 
+## Links:
+- Frontend: [Vercel](https://ttt.codebysaran.in)
+- Backend: [Digital Ocean](https://be.codebysaran.in)
+
 ## Setup and Installation
 
 ### Backend
@@ -43,7 +47,32 @@ The project consists of a server-authoritative backend and a modern SvelteKit fr
 
 ## Deployment Process
 
-[To be added]
+`Frontend -> HTTPS/WSS -> Nginx -> Nakama -> Postgres`
+
+### 1. Backend deployment
+- Hosted on a cloud VM (DigitalOcean droplet)
+- Uses Docker Compose (Nakama + Postgres)
+- Nakama runs on localhost (`127.0.0.1:7350`), not publicly exposed
+- Deployment command: `docker compose up -d`
+
+### 2. Reverse proxy and HTTPS
+- Nginx used as reverse proxy
+- Domain: `be.codebysaran.in`
+- Proxies to `localhost:7350`
+- SSL via Let's Encrypt (Certbot), supporting HTTPS and WSS
+
+### 3. Frontend deployment
+- Hosted on Vercel
+- Uses environment variables:
+  - `PUBLIC_NAKAMA_HOST`
+  - `PUBLIC_NAKAMA_PORT`
+  - `PUBLIC_NAKAMA_SERVER_KEY`
+  - `PUBLIC_NAKAMA_USE_SSL`
+
+### 4. Security/networking
+- Only ports 80 and 443 exposed
+- Port 7350 blocked externally
+- All traffic routed through Nginx
 
 ## API/Server Configuration Details
 
