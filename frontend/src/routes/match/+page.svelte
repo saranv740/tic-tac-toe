@@ -8,7 +8,7 @@
 	import Timer from '$lib/components/Timer.svelte';
 	import { client, getSocket } from '$lib/services/nakama';
 	import { sessionStore } from '$lib/stores/session.svelte';
-	import { matchStore } from '$lib/stores/match.svelte';
+	import { matchStore, type PlayerInfo } from '$lib/stores/match.svelte';
 	import type { MatchStatePayload, EndPayload } from '$lib/types';
 
 	const OP_MOVE = 1;
@@ -92,19 +92,45 @@
 					const state = payload as MatchStatePayload;
 					matchStore.applyState(state);
 
-					// Fetch display names for both players in one call
-					// getUsers(session, ids?, usernames?, facebookIds?)
-					const usersResult = await client.getUsers(sessionStore.session!, [
-						state.player_x,
-						state.player_o
+					// Fetch user profiles and stored stats in parallel
+					const [usersResult, statsResult] = await Promise.all([
+						client.getUsers(sessionStore.session!, [state.player_x, state.player_o]),
+						client.readStorageObjects(sessionStore.session!, {
+							object_ids: [
+								{ collection: 'stats', key: 'tic-tac-toe', user_id: state.player_x },
+								{ collection: 'stats', key: 'tic-tac-toe', user_id: state.player_o }
+							]
+						})
 					]);
+
 					const users = usersResult.users ?? [];
 					const xUser = users.find((u) => u.id === state.player_x);
 					const oUser = users.find((u) => u.id === state.player_o);
 
+					// Storage objects hold wins/losses/draws/current_streak per player
+					const storageObjects = statsResult.objects ?? [];
+					const xStats =
+						(storageObjects.find((o) => o.user_id === state.player_x)?.value as PlayerInfo) ?? {};
+					const oStats =
+						(storageObjects.find((o) => o.user_id === state.player_o)?.value as PlayerInfo) ?? {};
+
 					matchStore.setPlayers(
-						{ userId: state.player_x, username: xUser?.username ?? 'Player X', wins: 0 },
-						{ userId: state.player_o, username: oUser?.username ?? 'Player O', wins: 0 }
+						{
+							userId: state.player_x,
+							username: xUser?.username ?? 'Player X',
+							wins: xStats.wins ?? 0,
+							losses: xStats.losses ?? 0,
+							draws: xStats.draws ?? 0,
+							current_streak: xStats.current_streak ?? 0
+						},
+						{
+							userId: state.player_o,
+							username: oUser?.username ?? 'Player O',
+							wins: oStats.wins ?? 0,
+							losses: oStats.losses ?? 0,
+							draws: oStats.draws ?? 0,
+							current_streak: oStats.current_streak ?? 0
+						}
 					);
 
 					// Determine my role (X or O) based on my user ID
@@ -165,14 +191,16 @@
 		playerXStats={{
 			name: matchStore.playerX?.username ?? 'Player X',
 			wins: matchStore.playerX?.wins ?? 0,
-			losses: 0,
-			draws: 0
+			losses: matchStore.playerX?.losses ?? 0,
+			draws: matchStore.playerX?.draws ?? 0,
+			current_streak: matchStore.playerX?.current_streak ?? 0
 		}}
 		playerOStats={{
 			name: matchStore.playerO?.username ?? 'Player O',
 			wins: matchStore.playerO?.wins ?? 0,
-			losses: 0,
-			draws: 0
+			losses: matchStore.playerO?.losses ?? 0,
+			draws: matchStore.playerO?.draws ?? 0,
+			current_streak: matchStore.playerO?.current_streak ?? 0
 		}}
 	/>
 {:else}

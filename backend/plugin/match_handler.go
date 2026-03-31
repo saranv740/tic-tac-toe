@@ -473,9 +473,17 @@ func updatePlayerStats(ctx context.Context, logger runtime.Logger, nk runtime.Na
 
 	// 4. Update Leaderboard score specifically for "wins"
 	if result == "win" {
+		// Fetch the username so the leaderboard shows a real name, not "unknown"
+		username := ""
+		if account, err := nk.AccountGetId(ctx, userID); err == nil && account.User != nil {
+			username = account.User.Username
+		} else if err != nil {
+			logger.Warn("Could not fetch account for leaderboard display name: %v", err)
+		}
+
 		score := int64(1)
 		subscore := int64(0)
-		_, err := nk.LeaderboardRecordWrite(ctx, "tic_tac_toe_global", userID, "", score, subscore, nil, nil)
+		_, err := nk.LeaderboardRecordWrite(ctx, "tic_tac_toe_global", userID, username, score, subscore, nil, nil)
 		if err != nil {
 			logger.Error("Error writing to leaderboard: %v", err)
 		}

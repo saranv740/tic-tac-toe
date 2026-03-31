@@ -12,6 +12,9 @@ export interface PlayerInfo {
 	userId: string;
 	username: string;
 	wins: number;
+	losses: number;
+	draws: number;
+	current_streak: number;
 }
 
 export type GamePhase = 'waiting' | 'playing' | 'ended';

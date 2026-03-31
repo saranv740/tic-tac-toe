@@ -40,7 +40,7 @@
 				'text-on-secondary-container': type === 'O'
 			})}
 		>
-			<span>{playerXStats.name}</span>
+			<span>{stat.name}</span>
 			<span class="text-body-md">
 				{#if type === 'X'}
 					<XIcon />
@@ -52,6 +52,7 @@
 		{@render statLine('Wins', stat.wins)}
 		{@render statLine('Losses', stat.losses)}
 		{@render statLine('Draws', stat.draws)}
+		{@render statLine('Streak', stat.current_streak)}
 	</div>
 {/snippet}
 
