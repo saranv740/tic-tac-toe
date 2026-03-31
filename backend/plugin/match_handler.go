@@ -106,9 +106,12 @@ func (m *MatchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db 
 func (m *MatchHandler) MatchJoinAttempt(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, dispatcher runtime.MatchDispatcher, tick int64, state any, presence runtime.Presence, metadata map[string]string) (any, bool, string) {
 	s := state.(*MatchState)
 
-	// Prevent the same player joining twice from different sessions simultaneously
-	if _, ok := s.Presences[presence.GetUserId()]; ok {
-		return s, false, "already joined"
+	// Prevent the same player joining twice from different sessions simultaneously.
+	// Presences is keyed by session ID, so we must iterate values to compare user IDs.
+	for _, p := range s.Presences {
+		if p.GetUserId() == presence.GetUserId() {
+			return s, false, "already joined"
+		}
 	}
 
 	// Strict reconnection check

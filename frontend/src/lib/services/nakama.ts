@@ -52,4 +52,9 @@ async function getSocket(): Promise<Socket> {
 	return _socket;
 }
 
-export { client, getSession, getSocket, authenticate };
+/** Clears the cached socket so the next getSocket() call creates a fresh connection. */
+function resetSocket() {
+	_socket = null;
+}
+
+export { client, getSession, getSocket, resetSocket, authenticate };

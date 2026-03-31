@@ -15,9 +15,10 @@
 	let searchError = $state('');
 	let matchType = $state<MatchType>('classic');
 
-	/** Navigate to /match after storing the match ID in the session store. */
+	/** Navigate to /match after storing the match ID in the session store and sessionStorage. */
 	function enterMatch(matchId: string) {
 		sessionStore.matchId = matchId;
+		sessionStorage.setItem('ttt_match_id', matchId); // survives tab close/reopen
 		goto('/match');
 	}
 
